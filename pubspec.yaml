@@ -10,13 +10,10 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_highlight: ^0.7.0
-  flutter_tex_js: ^1.0.0
-  # flutter_tex_js:
-  #   path: ../flutter_tex_js
+  flutter_tex_js:
+    path: ../flutter_tex_js/flutter_tex_js
   highlight: ^0.7.0
   org_parser: ^2.2.0
-  # org_parser:
-    # path: ../org_parser
 
 dev_dependencies:
   flutter_lints: ^1.0.4
