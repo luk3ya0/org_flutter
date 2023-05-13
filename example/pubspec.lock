@@ -78,9 +78,11 @@ packages:
   flutter_tex_js:
     dependency: transitive
     description:
-      path: "../../flutter_tex_js/flutter_tex_js"
-      relative: true
-    source: path
+      path: flutter_tex_js
+      ref: master
+      resolved-ref: "9cab2e96671bb7831a261f63f94682b6ce702bb8"
+      url: "https://github.com/luk3ya0/flutter_tex_js.git"
+    source: git
     version: "2.0.0"
   flutter_tex_js_android:
     dependency: transitive
@@ -93,9 +95,11 @@ packages:
   flutter_tex_js_ios:
     dependency: transitive
     description:
-      path: "../../flutter_tex_js/flutter_tex_js_ios"
-      relative: true
-    source: path
+      path: flutter_tex_js_ios
+      ref: master
+      resolved-ref: "9cab2e96671bb7831a261f63f94682b6ce702bb8"
+      url: "https://github.com/luk3ya0/flutter_tex_js.git"
+    source: git
     version: "2.0.0"
   flutter_tex_js_platform_interface:
     dependency: transitive

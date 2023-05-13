@@ -11,7 +11,10 @@ dependencies:
     sdk: flutter
   flutter_highlight: ^0.7.0
   flutter_tex_js:
-    path: ../flutter_tex_js/flutter_tex_js
+    git:
+      url: https://github.com/luk3ya0/flutter_tex_js.git
+      ref: master
+      path: flutter_tex_js
   highlight: ^0.7.0
   org_parser: ^3.0.0
 
