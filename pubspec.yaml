@@ -15,8 +15,13 @@ dependencies:
       url: https://github.com/luk3ya0/flutter_tex_js.git
       ref: master
       path: flutter_tex_js
+  flutter_tikz_rust:
+    git:
+      url: https://github.com/luk3ya0/flutter_tikz_rust.git
+      ref: main
   highlight: ^0.7.0
-  org_parser: ^3.0.0
+  org_parser:
+    path: ../org_parser
 
 dev_dependencies:
   flutter_lints: ^1.0.4

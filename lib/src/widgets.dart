@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tex_js/flutter_tex_js.dart';
+import 'package:flutter_tikz_rust/flutter_tikz_rust.dart';
 import 'package:org_flutter/src/controller.dart';
 import 'package:org_flutter/src/highlight.dart';
 import 'package:org_flutter/src/indent.dart';
@@ -11,7 +12,7 @@ import 'package:org_parser/org_parser.dart';
 /// The root of the actual Org Mode document itself. Assumes that
 /// [OrgRootWidget] and [OrgController] are available in the build context. See
 /// the Org widget for a more user-friendly entrypoint.
-class OrgDocumentWidget extends StatelessWidget {
+class OrgDocumentWidget extends StatefulWidget {
   const OrgDocumentWidget(
     this.document, {
     this.shrinkWrap = false,
@@ -22,18 +23,47 @@ class OrgDocumentWidget extends StatelessWidget {
   final bool shrinkWrap;
 
   @override
+  State<OrgDocumentWidget> createState() => _OrgDocumentWidgetState();
+}
+
+class _OrgDocumentWidgetState extends State<OrgDocumentWidget> {
+  @override
+  void initState() {
+    super.initState();
+    // Mark that document is loading (for TikZ lazy rendering)
+    try {
+      final queue = TikzRenderQueue();
+      queue.markDocumentLoading();
+    } catch (e) {
+      // Ignore if TikZ plugin not available
+      debugPrint('TikZ queue not available: $e');
+    }
+    
+    // Mark document as ready after first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final queue = TikzRenderQueue();
+        queue.markDocumentReady();
+      } catch (e) {
+        // Ignore if TikZ plugin not available
+        debugPrint('TikZ queue not available: $e');
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListView(
-      restorationId: shrinkWrap
+      restorationId: widget.shrinkWrap
           ? null
           : OrgController.of(context)
               .restorationIdFor('org_document_list_view'),
       padding: OrgTheme.dataOf(context).rootPadding,
-      shrinkWrap: shrinkWrap,
-      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
+      shrinkWrap: widget.shrinkWrap,
+      physics: widget.shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       children: <Widget>[
-        if (document.content != null) OrgContentWidget(document.content!),
-        ...document.sections.map((section) => OrgSectionWidget(section)),
+        if (widget.document.content != null) OrgContentWidget(widget.document.content!),
+        ...widget.document.sections.map((section) => OrgSectionWidget(section)),
         listBottomSafeArea(),
       ],
     );
@@ -984,6 +1014,12 @@ class OrgPropertyWidget extends StatelessWidget {
   }
 }
 
+/// TikZ environments that should be rendered with TikZJax
+const Set<String> tikzEnvironments = {
+  'tikzpicture',
+  'tikzcd',
+};
+
 /// An Org Mode LaTeX block
 class OrgLatexBlockWidget extends StatelessWidget {
   const OrgLatexBlockWidget(this.block, {Key? key}) : super(key: key);
@@ -993,6 +1029,63 @@ class OrgLatexBlockWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyle = DefaultTextStyle.of(context).style;
+    
+    // Check if this is a TikZ environment
+    debugPrint('🔍 LaTeX Block - environment: "${block.environment}", isTikZ: ${tikzEnvironments.contains(block.environment)}');
+    if (tikzEnvironments.contains(block.environment)) {
+      debugPrint('✅ Rendering as TikZ: ${block.environment}');
+      
+      // Add necessary packages based on environment
+      String packages = '';
+      if (block.environment == 'tikzcd') {
+        packages = '\\usepackage{tikz-cd}\n';
+      }
+      
+      // Determine default color based on theme
+      // Only set default color for black/white, preserve other colors
+      String colorSetup = '';
+      if (textStyle.color != null) {
+        final color = textStyle.color!;
+        final isBlack = color.red < 50 && color.green < 50 && color.blue < 50;
+        final isWhite = color.red > 200 && color.green > 200 && color.blue > 200;
+        
+        if (isWhite) {
+          // Dark mode - set default color to white
+          colorSetup = '''
+\\usepackage{xcolor}
+\\color{white}
+''';
+        }
+        // For black (light mode), no need to set color as black is default
+      }
+      
+      // Prepare full TikZ document
+      // Note: rust_tikz may not support standalone class, so we don't specify documentclass
+      final tikzDocument = '''
+$packages$colorSetup\\begin{document}
+${block.begin}${block.content}${block.end}
+\\end{document}
+''';
+      
+      return Column(
+        children: [
+          // Use Align with center to properly center the TikZ widget
+          Align(
+            alignment: Alignment.center,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: TikzWidget(
+                tikzCode: tikzDocument,
+                color: textStyle.color,
+              ),
+            ),
+          ),
+          Text(removeTrailingLineBreak(removeTrailingLineBreak(block.trailing))),
+        ],
+      );
+    }
+    
+    // Otherwise, render as LaTeX
     return Column(
       children: [
         ConstrainedBox(
