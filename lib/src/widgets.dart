@@ -992,6 +992,7 @@ class OrgLatexBlockWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textStyle = DefaultTextStyle.of(context).style;
     return Column(
       children: [
         ConstrainedBox(
@@ -1001,6 +1002,7 @@ class OrgLatexBlockWidget extends StatelessWidget {
             child: TexImage(
               _content,
               displayMode: true,
+              color: textStyle.color,
               error: (context, error) {
                 debugPrint(error.toString());
                 return Text([
@@ -1037,9 +1039,11 @@ class OrgLatexInlineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textStyle = DefaultTextStyle.of(context).style;
     return TexImage(
       latex.content,
       displayMode: false,
+      color: textStyle.color,
       error: (context, error) {
         debugPrint(error.toString());
         return Text([
