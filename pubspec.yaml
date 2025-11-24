@@ -21,7 +21,9 @@ dependencies:
       ref: main
   highlight: ^0.7.0
   org_parser:
-    path: ../org_parser
+    git:
+      url: https://github.com/amake/org_parser.git
+      ref: v3.1.1
 
 dev_dependencies:
   flutter_lints: ^1.0.4
