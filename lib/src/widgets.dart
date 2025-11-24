@@ -1059,10 +1059,22 @@ class OrgLatexBlockWidget extends StatelessWidget {
         // For black (light mode), no need to set color as black is default
       }
       
+      // Set thicker line width for better visibility
+      // This makes lines more visible without scaling
+      String tikzSetup = '''
+\\tikzset{every picture/.style={line width=0.8pt}}
+''';
+      if (block.environment == 'tikzcd') {
+        // For tikzcd, also set arrow thickness
+        tikzSetup += '''
+\\tikzcdset{arrow style=tikz, diagrams={>=stealth, line width=0.8pt}}
+''';
+      }
+      
       // Prepare full TikZ document
       // Note: rust_tikz may not support standalone class, so we don't specify documentclass
       final tikzDocument = '''
-$packages$colorSetup\\begin{document}
+$packages$colorSetup$tikzSetup\\begin{document}
 ${block.begin}${block.content}${block.end}
 \\end{document}
 ''';
